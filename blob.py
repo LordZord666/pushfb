@@ -13,20 +13,17 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor()
 
-mycursor.execute("CREATE TABLE IF NOT EXISTS Images(id INTEGER(45) NOT NULL AUTO_INCREMENT PRIMARY KEY, Photo LONGBLOB NOT NULL)")
-
-
-def InsertBlob(FilePath):
-    inserQuery = """ INSERT INTO Images(id, photo) value(%s,%s)"""
+def InsertBlob(FilePath, title, description, price, availability):
+    inserQuery = """INSERT INTO table_product(title, description, price, photo, availability) value(%s,%s,%s,%s,%s)"""
     convertpic = convert_to_binary(FilePath)
-    value = (1, convertpic)
+    value = (title, description, price, convertpic, availability)
     mycursor.execute(inserQuery, value)
     mydb.commit()
 
 
 def RetrieveBlob (ID):
-    # convertfile = binary_to_file(filename)
-    SqlStatement2 ="SELECT * FROM Images WHERE id='{0}'"
+    #convertfile = binary_to_file(filename)
+    SqlStatement2 ="SELECT * FROM table_product "#WHERE id='{ID}'"
     mycursor.execute(SqlStatement2.format(str(ID)))
     myresult = mycursor.fetchall()[1]
     StoreFilePath = "imageoutput/img{0}.jpg".format(str(ID))
@@ -34,6 +31,13 @@ def RetrieveBlob (ID):
     with open(StoreFilePath,'wb') as File:
         File.write(myresult)
         File.close()
+
+def EditBlob(id, FilePath, title, description, price, availability):
+    updateQuery = """ UPDATE table_product SET title=%s, description=%s, price=%s, photo=%s, availability=%s where id=id """
+    convertpic = convert_to_binary(FilePath)
+    value = (3, 'Rock', 'Headbangers', 'Rs.1000', convertpic, 5)
+    mycursor.execute(updateQuery, value)
+    mydb.commit()
 
 
 # Convert Images to Binary
@@ -53,9 +57,12 @@ print("1. Insert image\n2. Read image")
 menuInput = input()
 
 if int(menuInput) == 1:
-    UserFilePath = input("Enter file path")
-    InsertBlob(UserFilePath)
+    title = str(input("Enter the title for your post: "))
+    description = str(input("Enter the description of your post: "))
+    price = str(input("Enter the price for your post: "))
+    availability = str(input("Enter the availability for your post: "))
+    UserFilePath = input("Insert Photo Path: ")
+    InsertBlob(UserFilePath, title, description, price, availability)
 elif int(menuInput) == 2:
     UserIDChoice = input("Enter ID:")
     RetrieveBlob(UserIDChoice)
-
