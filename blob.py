@@ -1,8 +1,4 @@
-from fileinput import filename
-from opcode import opname
 import mysql.connector
-import os
-from mysqlx import SqlStatement
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -14,28 +10,34 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 def InsertBlob(FilePath, title, description, price, availability):
-    inserQuery = """INSERT INTO table_product(title, description, price, photo, availability) value(%s,%s,%s,%s,%s)"""
+    insertQuery = """INSERT INTO table_product(title, description, price, photo, availability) value(%s,%s,%s,%s,%s)"""
     convertpic = convert_to_binary(FilePath)
     value = (title, description, price, convertpic, availability)
-    mycursor.execute(inserQuery, value)
+    mycursor.execute(insertQuery, value)
     mydb.commit()
 
 
-def RetrieveBlob (ID):
-    #convertfile = binary_to_file(filename)
-    SqlStatement2 ="SELECT * FROM table_product "#WHERE id='{ID}'"
-    mycursor.execute(SqlStatement2.format(str(ID)))
-    myresult = mycursor.fetchall()[1]
-    StoreFilePath = "imageoutput/img{0}.jpg".format(str(ID))
-    print (myresult)
-    with open(StoreFilePath,'wb') as File:
-        File.write(myresult)
-        File.close()
+def RetrieveBlob(id):
+    selectQuery = "SELECT * from images where id = '{0}'"
+    mycursor.execute(selectQuery.format(str(id)))
+    myresult = mycursor.fetchone()[2]
+    StoreFilePath = "Image.Outputs/img{0}.jpg".format(str(id))
+    print(myresult)
+    sql_select_query = "SELECT * FROM images where id = '{0}'"
+    mycursor.execute(selectQuery.format(str(id)))
+    myresult1 = mycursor.fetchone()[1]
+    StoreFilePath = "Image_Outputs/img{0}.jpg".format(str(id))
+    print(myresult1)
+    with open(StoreFilePath, 'wb') as file:
+        file.write(myresult)
+        file.close()
+
 
 def EditBlob(id, FilePath, title, description, price, availability):
-    updateQuery = """ UPDATE table_product SET title=%s, description=%s, price=%s, photo=%s, availability=%s where id=id """
-    convertpic = convert_to_binary(FilePath)
-    value = (3, 'Rock', 'Headbangers', 'Rs.1000', convertpic, 5)
+    with open(FilePath, "rb") as file:
+        binary_data = file.read()
+    updateQuery = """ UPDATE table_product SET title=%s, description=%s, price=%s, photo=%s, availability=%s where id=%s """
+    value = (id, title, description, price, binary_data, availability)
     mycursor.execute(updateQuery, value)
     mydb.commit()
 
@@ -51,9 +53,10 @@ def convert_to_binary(filepath):
 def binary_to_file(filepath, binarydata):
     with open(filepath, 'wb') as file:
         file.write(binarydata)
+        print(file)
 
 
-print("1. Insert image\n2. Read image")
+print("1. Insert image\n2. Read image\n3. Update image")
 menuInput = input()
 
 if int(menuInput) == 1:
@@ -66,3 +69,10 @@ if int(menuInput) == 1:
 elif int(menuInput) == 2:
     UserIDChoice = input("Enter ID:")
     RetrieveBlob(UserIDChoice)
+elif int(menuInput) == 3:
+    title = str(input("Enter the title for your post: "))
+    description = str(input("Enter the description of your post: "))
+    price = str(input("Enter the price for your post: "))
+    availability = str(input("Enter the availability for your post: "))
+    FilePath = input("Insert Photo Path: ")
+    EditBlob(id, FilePath, title, description, price, availability)
